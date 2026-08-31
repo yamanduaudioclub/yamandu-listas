@@ -12,35 +12,20 @@
 <style>
 
 :root{
-  --bg:#EEF0EF; --surface:#FFFFFF; --surface-2:#F7F8F7; --border:#D9DCDA;
-  --ink:#1B1E22; --ink-muted:#5B6167; --ink-faint:#8A8F8C;
-  --accent:#A66A1B; --accent-ink:#FFFFFF; --accent-soft:#F3E3CC; --accent-soft-ink:#7A4E13;
-  --success:#2F8F55; --success-soft:#E1F1E6; --warning:#B15D1B; --warning-soft:#FBEADB;
-  --critical:#C0392B; --critical-soft:#FBE4E1;
-  --shadow:0 1px 2px rgba(20,22,25,.06),0 10px 28px -14px rgba(20,22,25,.22);
-  --radius:12px; --radius-sm:8px;
-  --font-display:'Bricolage Grotesque',ui-sans-serif,system-ui,sans-serif;
-  --font-body:'IBM Plex Sans',ui-sans-serif,system-ui,sans-serif;
-  --font-mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
-}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --bg:#14161A; --surface:#1D2027; --surface-2:#23262D; --border:#33373F;
-    --ink:#EDEAE3; --ink-muted:#A0A5A9; --ink-faint:#6E7378;
-    --accent:#D9A441; --accent-ink:#14161A; --accent-soft:#3A2E17; --accent-soft-ink:#EFC57C;
-    --success:#5FB07A; --success-soft:#1C2E22; --warning:#E2914F; --warning-soft:#332312;
-    --critical:#E2695F; --critical-soft:#341B18;
-    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px -14px rgba(0,0,0,.65);
-  }
-}
-:root[data-theme="dark"]{
   --bg:#14161A; --surface:#1D2027; --surface-2:#23262D; --border:#33373F;
   --ink:#EDEAE3; --ink-muted:#A0A5A9; --ink-faint:#6E7378;
   --accent:#D9A441; --accent-ink:#14161A; --accent-soft:#3A2E17; --accent-soft-ink:#EFC57C;
   --success:#5FB07A; --success-soft:#1C2E22; --warning:#E2914F; --warning-soft:#332312;
   --critical:#E2695F; --critical-soft:#341B18;
   --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px -14px rgba(0,0,0,.65);
+  --radius:12px; --radius-sm:8px;
+  --font-display:'Bricolage Grotesque',ui-sans-serif,system-ui,sans-serif;
+  --font-body:'IBM Plex Sans',ui-sans-serif,system-ui,sans-serif;
+  --font-mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
 }
+/* El panel y el formulario de invitados son siempre oscuros — no siguen el modo
+   claro/oscuro del celular ni del navegador del visitante. */
+html{ color-scheme: dark; }
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
 body{
@@ -74,9 +59,7 @@ button{font-family:inherit;}
 .tabs::-webkit-scrollbar{display:none;}
 .tab{flex:0 0 auto; padding:8px 14px; border-radius:999px; border:1px solid transparent; background:none; color:var(--ink-muted); font-size:13.5px; font-weight:600; cursor:pointer; white-space:nowrap;}
 .tab:hover{color:var(--ink);}
-.tab.active{background:var(--ink); color:var(--bg);}
-@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .tab.active{background:var(--accent); color:var(--accent-ink);} }
-:root[data-theme="dark"] .tab.active{background:var(--accent); color:var(--accent-ink);}
+.tab.active{background:var(--accent); color:var(--accent-ink);}
 
 .view{max-width:980px; margin:0 auto; padding:20px 16px 64px;}
 .view-head{margin-bottom:18px;}
