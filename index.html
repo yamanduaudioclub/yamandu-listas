@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 
 :root{
@@ -336,6 +337,33 @@ function toggleIngreso(id){
     inv.ingresoEn = nextEn;
     render();
   });
+}
+function exportEventoXlsx(eventoId){
+  var evento = eventoById(eventoId);
+  if(!evento) return;
+  if(typeof XLSX === 'undefined'){ showBanner('critical','No se pudo generar la planilla. Probá de nuevo en un momento.'); return; }
+  var list = sbInvitados.filter(function(i){return i.eventoId===eventoId;});
+  list = list.slice().sort(function(a,b){return (a.nombre+' '+a.apellido).localeCompare(b.nombre+' '+b.apellido);});
+  var rows = list.map(function(i){
+    var rp = rrppById(i.rrppId);
+    return {
+      'Nombre': i.nombre,
+      'Apellido': i.apellido,
+      'Mail': i.mail||'',
+      'WhatsApp': i.telefono||'',
+      'RRPP': rp ? rp.nombre : '',
+      'Tipo': i.tipo==='vip' ? 'VIP' : 'General',
+      'Ingresó': i.ingreso ? 'Sí' : 'No',
+      'Hora de ingreso': i.ingresoEn ? fmtDateTime(i.ingresoEn) : ''
+    };
+  });
+  if(!rows.length){ showBanner('info','Esta lista todavía no tiene invitados.'); return; }
+  var ws = XLSX.utils.json_to_sheet(rows);
+  ws['!cols'] = [{wch:16},{wch:16},{wch:24},{wch:14},{wch:16},{wch:9},{wch:9},{wch:16}];
+  var wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Lista');
+  var filename = 'Lista - '+evento.nombre+' - '+evento.fecha+'.xlsx';
+  XLSX.writeFile(wb, filename);
 }
 function deleteInvitado(id){
   var inv = sbInvitados.find(function(x){return x.id===id;});
@@ -728,7 +756,7 @@ function renderPuerta(){
     list.sort(function(a,b){return (a.nombre+' '+a.apellido).localeCompare(b.nombre+' '+b.apellido);});
     var past = new Date() > cutoffDate(evento);
     html += '<div class="card"><div class="row-between"><h3 class="section-title" style="margin:0;">Lista · '+list.length+' resultado(s)</h3>';
-    html += '<span class="pill '+(past?'pill-warning':'pill-success')+'">'+(past?'Después del corte ('+evento.horaCorte+' hs)':'Antes del corte ('+evento.horaCorte+' hs)')+'</span></div>';
+    html += '<div class="row" style="gap:8px;"><button class="btn btn-sm btn-ghost" data-action="puerta-exportar" data-id="'+evento.id+'">⬇ Descargar planilla</button><span class="pill '+(past?'pill-warning':'pill-success')+'">'+(past?'Después del corte ('+evento.horaCorte+' hs)':'Antes del corte ('+evento.horaCorte+' hs)')+'</span></div></div>';
     if(!list.length){ html += '<div class="empty">Nadie coincide con la búsqueda.</div>'; }
     else {
       html += '<div class="stack" style="margin-top:10px;">';
@@ -899,7 +927,7 @@ function renderEventos(){
     var gen = sbInvitados.filter(function(i){return i.eventoId===e.id && i.tipo==='general';}).length;
     var vip = sbInvitados.filter(function(i){return i.eventoId===e.id && i.tipo==='vip';}).length;
     html += '<div class="card"><div class="row-between"><div><strong style="font-family:var(--font-display);font-size:17px;">'+esc(e.nombre)+'</strong><div style="font-size:12.5px;color:var(--ink-muted);">'+fmtDate(e.fecha)+' · '+gen+' en lista · '+vip+' VIP</div></div>';
-    html += '<div class="row" style="gap:6px;"><button class="btn btn-sm '+(e.activo?'':'btn-ghost')+'" data-action="toggle-evento-activo" data-id="'+e.id+'">'+(e.activo?'Activo':'Inactivo')+'</button><button class="btn btn-sm btn-ghost btn-danger" data-action="evento-eliminar" data-id="'+e.id+'">Eliminar</button></div></div>';
+    html += '<div class="row" style="gap:6px;"><button class="btn btn-sm btn-ghost" data-action="puerta-exportar" data-id="'+e.id+'">⬇ Descargar planilla</button><button class="btn btn-sm '+(e.activo?'':'btn-ghost')+'" data-action="toggle-evento-activo" data-id="'+e.id+'">'+(e.activo?'Activo':'Inactivo')+'</button><button class="btn btn-sm btn-ghost btn-danger" data-action="evento-eliminar" data-id="'+e.id+'">Eliminar</button></div></div>';
     html += '<div class="row" style="margin-top:10px;gap:8px;"><label style="font-size:12.5px;color:var(--ink-muted);">Horario de corte</label><input type="time" value="'+e.horaCorte+'" data-action="evento-corte" data-id="'+e.id+'" style="width:auto;"></div>';
     html += '<div class="field" style="margin-top:10px;"><label>Mensaje de confirmación para el invitado (si lo dejás vacío, se usa el mensaje genérico)</label><textarea rows="3" data-action="evento-mensaje" data-id="'+e.id+'" placeholder="Ej: Estás en la lista de '+esc(e.nombre)+'! Recordá llegar antes de la hora de corte con DNI.">'+esc(e.mensajeConfirmacion)+'</textarea></div>';
     html += '</div>';
@@ -1043,6 +1071,7 @@ function onClick(e){
   }
   if(action==='toggle-ingreso'){ toggleIngreso(el.dataset.id); return; }
   if(action==='invitado-eliminar'){ deleteInvitado(el.dataset.id); return; }
+  if(action==='puerta-exportar'){ exportEventoXlsx(el.dataset.id); return; }
   if(action==='toggle-rrpp-activo'){ toggleRrppActivo(el.dataset.id); return; }
   if(action==='toggle-evento-activo'){ toggleEventoActivo(el.dataset.id); return; }
   if(action==='registrar-renovacion'){ registrarRenovacion(el.dataset.id); return; }
