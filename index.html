@@ -337,6 +337,17 @@ function toggleIngreso(id){
     render();
   });
 }
+function deleteInvitado(id){
+  var inv = sbInvitados.find(function(x){return x.id===id;});
+  if(!inv) return;
+  if(!confirm('Sacar a '+inv.nombre+' '+inv.apellido+' de la lista? No se puede deshacer.')) return;
+  SB.from('invitados').delete().eq('id', id).then(function(res){
+    if(res.error){ showBanner('critical','No se pudo eliminar de la lista.'); return; }
+    sbInvitados = sbInvitados.filter(function(x){return x.id!==id;});
+    showBanner('success','Invitado eliminado de la lista.');
+    render();
+  });
+}
 function addRrpp(data){
   SB.from('rrpps').insert({nombre:data.nombre, codigo:data.codigo.toUpperCase(), telefono:data.telefono||''}).select().single().then(function(res){
     if(res.error){ showBanner('critical', res.error.code==='23505' ? 'Ese código ya está en uso por otro RRPP.' : 'No se pudo agregar el RRPP.'); return; }
@@ -714,7 +725,7 @@ function renderPuerta(){
       var q = doorSearch.trim().toLowerCase();
       list = list.filter(function(i){ return (i.nombre+' '+i.apellido).toLowerCase().indexOf(q)>-1; });
     }
-    list.sort(function(a,b){return a.apellido.localeCompare(b.apellido);});
+    list.sort(function(a,b){return (a.nombre+' '+a.apellido).localeCompare(b.nombre+' '+b.apellido);});
     var past = new Date() > cutoffDate(evento);
     html += '<div class="card"><div class="row-between"><h3 class="section-title" style="margin:0;">Lista · '+list.length+' resultado(s)</h3>';
     html += '<span class="pill '+(past?'pill-warning':'pill-success')+'">'+(past?'Después del corte ('+evento.horaCorte+' hs)':'Antes del corte ('+evento.horaCorte+' hs)')+'</span></div>';
@@ -732,6 +743,7 @@ function renderPuerta(){
         if(pagaEntrada) html += '<span class="pill pill-warning">Abona entrada</span>';
         if(i.ingreso){ html += '<span class="pill pill-success">Ingresó '+fmtDateTime(i.ingresoEn).split(', ')[1]+'</span>'; }
         html += '<button class="btn btn-sm '+(i.ingreso?'':'btn-primary')+'" data-action="toggle-ingreso" data-id="'+i.id+'">'+(i.ingreso?'Deshacer':'Marcar ingreso')+'</button>';
+        html += '<button class="btn btn-sm btn-ghost btn-danger" data-action="invitado-eliminar" data-id="'+i.id+'">Eliminar</button>';
         html += '</div></div>';
       });
       html += '</div>';
@@ -1030,6 +1042,7 @@ function onClick(e){
     return;
   }
   if(action==='toggle-ingreso'){ toggleIngreso(el.dataset.id); return; }
+  if(action==='invitado-eliminar'){ deleteInvitado(el.dataset.id); return; }
   if(action==='toggle-rrpp-activo'){ toggleRrppActivo(el.dataset.id); return; }
   if(action==='toggle-evento-activo'){ toggleEventoActivo(el.dataset.id); return; }
   if(action==='registrar-renovacion'){ registrarRenovacion(el.dataset.id); return; }
