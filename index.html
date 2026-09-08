@@ -794,7 +794,8 @@ function renderPuerta(){
   html += '</div></div>';
 
   if(evento){
-    var list = sbInvitados.filter(function(i){return i.eventoId===evento.id;});
+    var allForEvent = sbInvitados.filter(function(i){return i.eventoId===evento.id;});
+    var list = allForEvent;
     if(doorSearch.trim()){
       var q = doorSearch.trim().toLowerCase();
       list = list.filter(function(i){ return (i.nombre+' '+i.apellido).toLowerCase().indexOf(q)>-1; });
@@ -822,6 +823,13 @@ function renderPuerta(){
       });
       html += '</div>';
     }
+    var totalGen = allForEvent.filter(function(i){return i.tipo!=='vip';}).length;
+    var totalVip = allForEvent.filter(function(i){return i.tipo==='vip';}).length;
+    var totalIngresaron = allForEvent.filter(function(i){return i.ingreso;}).length;
+    html += '<div class="row-between" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">';
+    html += '<strong>Total anotados: '+allForEvent.length+'</strong>';
+    html += '<span style="font-size:12.5px;color:var(--ink-muted);">'+totalGen+' general · '+totalVip+' VIP · '+totalIngresaron+' ya ingresaron</span>';
+    html += '</div>';
     html += '</div>';
 
     html += '<div class="card"><h3 class="section-title">Agregar a la lista de este evento</h3>';
