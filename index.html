@@ -990,6 +990,7 @@ function renderEventos(){
     html += '<input type="file" accept="image/*" data-action="evento-imagen" data-id="'+e.id+'" style="width:auto;flex:1;">';
     if(e.imagen) html += '<button type="button" class="btn btn-sm btn-ghost btn-danger" data-action="evento-imagen-quitar" data-id="'+e.id+'">Quitar</button>';
     html += '</div></div>';
+    html += '<div class="field" style="margin-top:10px;"><label>Link directo a este evento (al abrirlo, muestra este evento de entrada — no el próximo)</label>'+linkRow(baseUrl()+'#invitar?evento='+e.id)+'</div>';
     html += '</div>';
   });
   html += '<div class="card"><h3 class="section-title">Nuevo evento</h3><form data-action="evento-nuevo"><div class="field-row">';
@@ -1040,7 +1041,11 @@ function renderInvitar(params){
     if(!eventos.length){
       html += '<div class="card"><div class="empty">No hay eventos activos en este momento. Consultá directamente con tu RRPP.</div></div>';
     } else {
-      if(!invitarSelectedEventoId || !eventos.some(function(e){return e.id===invitarSelectedEventoId;})){ invitarSelectedEventoId = eventos[0].id; }
+      if(!invitarSelectedEventoId || !eventos.some(function(e){return e.id===invitarSelectedEventoId;})){
+        var eventoLink = params.get('evento');
+        var eventoDesdeLink = eventoLink ? eventos.find(function(e){return e.id===eventoLink;}) : null;
+        invitarSelectedEventoId = eventoDesdeLink ? eventoDesdeLink.id : eventos[0].id;
+      }
       var selectedEv = eventoById(invitarSelectedEventoId);
       if(selectedEv && selectedEv.imagen) html += '<img src="'+selectedEv.imagen+'" alt="" style="width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:var(--radius);margin-bottom:16px;">';
       html += '<form data-action="invite-nuevo">';
