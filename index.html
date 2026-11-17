@@ -9,6 +9,23 @@
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '1257764039277704');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=1257764039277704&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
 <style>
 
 :root{
@@ -1026,7 +1043,7 @@ function renderInvitar(params){
     html += '</div>';
     if(rp && rp.telefono){
       var msg = 'Hola '+rp.nombre+'! Soy '+done.nombre+' '+done.apellido+', ya me anoté en tu lista de Yamandú para '+(ev?ev.nombre:'')+ '.';
-      html += '<div class="row" style="justify-content:center;margin-top:14px;"><a class="btn" target="_blank" rel="noopener" href="'+waLink(rp.telefono, msg)+'">Avisarle a '+esc(rp.nombre)+' por WhatsApp</a></div>';
+      html += '<div class="row" style="justify-content:center;margin-top:14px;"><a class="btn" target="_blank" rel="noopener" data-action="whatsapp-avisar" data-evento="'+esc(ev?ev.nombre:'')+'" href="'+waLink(rp.telefono, msg)+'">Avisarle a '+esc(rp.nombre)+' por WhatsApp</a></div>';
     }
     html += '<div class="row" style="justify-content:center;margin-top:10px;"><button class="btn btn-ghost btn-sm" data-action="invite-again">Anotar a alguien más</button></div>';
   } else if(!listasReady && invitarError){
@@ -1089,6 +1106,10 @@ function onSubmit(e){
         return;
       }
       sessionStorage.setItem('yam_invite_done', JSON.stringify({nombre:data.nombre, apellido:data.apellido, eventoId:data.eventoId, rrppId:data.rrppId}));
+      if(typeof fbq === 'function'){
+        var evForPixel = eventoById(data.eventoId);
+        fbq('track', 'CompleteRegistration', {content_name: evForPixel ? evForPixel.nombre : undefined, status: true});
+      }
       render();
     }).catch(function(){ invitarSubmitting=false; inviteSubmitError='No pudimos confirmar tu lugar. Probá de nuevo en un momento.'; render(); });
     return;
@@ -1141,6 +1162,10 @@ function onClick(e){
   if(action==='toggle-ingreso'){ toggleIngreso(el.dataset.id); return; }
   if(action==='invitado-eliminar'){ deleteInvitado(el.dataset.id); return; }
   if(action==='puerta-exportar'){ exportEventoXlsx(el.dataset.id); return; }
+  if(action==='whatsapp-avisar'){
+    if(typeof fbq === 'function'){ fbq('track', 'Contact', {content_name: el.dataset.evento || undefined}); }
+    return;
+  }
   if(action==='toggle-rrpp-activo'){ toggleRrppActivo(el.dataset.id); return; }
   if(action==='toggle-evento-activo'){ toggleEventoActivo(el.dataset.id); return; }
   if(action==='registrar-renovacion'){ registrarRenovacion(el.dataset.id); return; }
